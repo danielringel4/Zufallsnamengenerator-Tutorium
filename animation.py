@@ -94,7 +94,7 @@ def _run_confetti(screen, width: int, height: int, winner: str, title_font, winn
         pygame.display.flip()
 
 
-def run_animation(candidates: List[str], task_name: str):
+def run_animation(candidates: List[str], task_name: str, weights: dict | None = None):
     """Casino-Slot-Animation mit verlangsamter Endphase und Jubel."""
     if not candidates:
         print(f"Für '{task_name}' hat niemand eine Lösung eingereicht.")
@@ -148,7 +148,19 @@ def run_animation(candidates: List[str], task_name: str):
 
         min_reel_length = max(400, winner_index + 200)
         reel = _build_reel(candidates, min_len=min_reel_length)
-        winner = random.choice(candidates)
+        # Wähle Gewinner - falls Gewichte übergeben wurden, nutze sie
+        if weights:
+            # Stelle sicher, dass die Reihenfolge mit 'candidates' übereinstimmt
+            try:
+                weight_list = [max(0.0, float(weights.get(c, 0.0))) for c in candidates]
+            except Exception:
+                weight_list = None
+            if weight_list and any(w > 0 for w in weight_list):
+                winner = random.choices(candidates, weights=weight_list, k=1)[0]
+            else:
+                winner = random.choice(candidates)
+        else:
+            winner = random.choice(candidates)
 
         decoy = None
         if len(set(candidates)) > 1 and random.random() < RUTTLER_PROBABILITY:
@@ -271,7 +283,7 @@ def run_animation(candidates: List[str], task_name: str):
 
     final_winner = spin_once()
 
-    freespin_triggered = random.random() < 0.2
+    freespin_triggered = random.random() < 0.1
     if freespin_triggered:
         pause_clock = pygame.time.Clock()
         pause_end = time.time() + 2.0
