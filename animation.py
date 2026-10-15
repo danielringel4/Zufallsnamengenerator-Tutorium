@@ -30,10 +30,13 @@ END_JERK_TIME_SEC = 1       # Dauer, in der der Restweg maximal abgeschlossen wi
 
 
 def _build_reel(candidates: List[str], min_len: int = 400) -> List[str]:
-    reel = list(candidates)
-    while len(reel) < min_len:
-        reel.extend(candidates)
-    random.shuffle(reel)
+    reel = []
+    last = None
+    for _ in range(min_len):
+        choices = [c for c in candidates if c != last]
+        name = random.choice(choices)
+        reel.append(name)
+        last = name
     return reel
 
 
@@ -223,9 +226,9 @@ def run_animation(candidates: List[str], task_name: str, weights: dict | None = 
 
                 # Letzter schneller Ruck: wenn wir nah am Ziel sind, erhöhen wir die Geschwindigkeit
                 # so, dass der Rest in END_JERK_TIME_SEC abgeschlossen wird (aber ohne zu überspringen).
-                if max_travel > 0 and max_travel <= spacing * END_JERK_THRESHOLD_ROWS:
-                    desired_speed = max_travel / max(END_JERK_TIME_SEC, 1e-6)
-                    current_speed_px = max(current_speed_px, desired_speed)
+                # if max_travel > 0 and max_travel <= spacing * END_JERK_THRESHOLD_ROWS:
+                #     desired_speed = max_travel / max(END_JERK_TIME_SEC, 1e-6)
+                #     current_speed_px = max(current_speed_px, desired_speed)
 
                 if current_speed_px <= 0.0:
                     effective_dt = 0.0
@@ -274,7 +277,9 @@ def run_animation(candidates: List[str], task_name: str, weights: dict | None = 
 
             pygame.display.flip()
 
-            finished = scroll_offset >= target_offset and pause_until is None
+            if scroll_offset >= target_offset and pause_until is None:
+                scroll_offset = target_offset
+                finished = True
             if motion_elapsed >= motion_duration and pause_until is None:
                 scroll_offset = target_offset
                 finished = True

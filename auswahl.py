@@ -1,7 +1,8 @@
 import csv
+import json
 from animation import run_animation
 
-CSV_FILENAME = "Uebung_4_Pro_Person_2025-11-19.csv"
+CSV_FILENAME = ".csv"
 
 
 def read_candidates():
@@ -36,6 +37,8 @@ def read_candidates():
     except Exception as exc:
         print(f"Ein Fehler ist aufgetreten: {exc}")
         return None
+    for task, names in candidates_per_task.items():
+        candidates_per_task[task] = list(dict.fromkeys(names))
 
     return candidates_per_task
 
@@ -113,7 +116,27 @@ def main():
             n_val = 1
         weights[name] = 100.0 / (n_val * n_val)
 
-    winner = run_animation(candidates_for_task, selected_task, weights=weights)
+    with open("names.json", "r", encoding="utf-8") as f:
+        json_names = json.load(f)
+
+    avail_names = [p["name"] for p in json_names]
+    intersec = set(candidates_for_task).intersection(avail_names)
+
+    if not intersec:
+        print(f"Alle Personen, die {selected_task} votiert haben, haben schon zweimal vorgerechnet.")
+    else:
+        # winner = run_animation(candidates_for_task, selected_task, weights=weights)
+        winner = run_animation(list(intersec), selected_task)
+        person_in_list = None
+        for person in json_names:
+            if person["name"] == winner:
+                person_in_list = person
+                break
+        if person_in_list:
+            json_names.remove(person_in_list)
+
+            with open("names.json", "w", encoding="utf-8") as f:
+                json.dump(json_names, f, ensure_ascii=False, indent=4)
 
     if winner:
         print(f"\nDie für '{selected_task}' ausgewählte Person ist: {winner}")
