@@ -15,7 +15,7 @@ def create_json(csv_file: str, json_file: str = "names.json"):
             nachname = (row.get('Nachname') or '').strip()
             full_name = f"{vorname} {nachname}".strip()
             person = {"anmeldename": row["Anmeldename"], "name": full_name}
-            votierliste.extend([person]*2)
+            votierliste.extend([person])
     with open(json_file, "w", encoding="utf-8") as f:
         json.dump(votierliste, f, ensure_ascii=False, indent=4)
 

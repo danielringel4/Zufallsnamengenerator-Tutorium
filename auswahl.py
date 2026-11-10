@@ -104,18 +104,6 @@ def main():
         except ValueError:
             print("Ungültige Eingabe. Bitte gib eine Zahl ein.")
 
-    # Berechne Gewichte gemäß Vorgabe: pro Person 100 Stimmen verteilt als 100 / n^2
-    weights = {}
-    for name in set(candidates_for_task):
-        n = vote_counts.get(name, 1)
-        try:
-            n_val = int(n) if n else 1
-        except Exception:
-            n_val = 1
-        if n_val <= 0:
-            n_val = 1
-        weights[name] = 100.0 / (n_val * n_val)
-
     with open("names.json", "r", encoding="utf-8") as f:
         json_names = json.load(f)
 
@@ -123,10 +111,27 @@ def main():
     intersec = set(candidates_for_task).intersection(avail_names)
 
     if not intersec:
-        print(f"Alle Personen, die {selected_task} votiert haben, haben schon zweimal vorgerechnet.")
-    else:
-        # winner = run_animation(candidates_for_task, selected_task, weights=weights)
-        winner = run_animation(list(intersec), selected_task)
+        print(f"Alle Personen, die {selected_task} votiert haben, haben schon vorgerechnet.")
+        return
+
+    # Berechne Gewichte gemäß Vorgabe: pro Person 100 Stimmen verteilt als 100 / n^2
+    weights = {}
+    for name in set(candidates_for_task):
+        if name in avail_names:
+            n = vote_counts.get(name, 1)
+            try:
+                n_val = int(n) if n else 1
+            except Exception:
+                n_val = 1
+            if n_val <= 0:
+                n_val = 1
+            weights[name] = 100.0 / (n_val * n_val)
+        else:
+            weights[name] = 0.0
+
+    winner = run_animation(candidates_for_task, selected_task, weights=weights)
+    # winner = run_animation(list(intersec), selected_task)
+    if winner:
         person_in_list = None
         for person in json_names:
             if person["name"] == winner:
@@ -138,7 +143,6 @@ def main():
             with open("names.json", "w", encoding="utf-8") as f:
                 json.dump(json_names, f, ensure_ascii=False, indent=4)
 
-    if winner:
         print(f"\nDie für '{selected_task}' ausgewählte Person ist: {winner}")
     else:
         print(f"\nFür '{selected_task}' konnte niemand ausgewählt werden, oder die Animation wurde abgebrochen.")
