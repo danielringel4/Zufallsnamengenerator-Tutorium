@@ -3,6 +3,7 @@ import json
 from animation import run_animation
 
 CSV_FILENAME = ".csv"
+JSON_FILENAME = ".json"
 
 
 def read_candidates():
@@ -104,7 +105,7 @@ def main():
         except ValueError:
             print("Ungültige Eingabe. Bitte gib eine Zahl ein.")
 
-    with open("names.json", "r", encoding="utf-8") as f:
+    with open(JSON_FILENAME, "r", encoding="utf-8") as f:
         json_names = json.load(f)
 
     avail_names = [p["name"] for p in json_names]
@@ -140,7 +141,7 @@ def main():
         if person_in_list:
             json_names.remove(person_in_list)
 
-            with open("names.json", "w", encoding="utf-8") as f:
+            with open(JSON_FILENAME, "w", encoding="utf-8") as f:
                 json.dump(json_names, f, ensure_ascii=False, indent=4)
 
         print(f"\nDie für '{selected_task}' ausgewählte Person ist: {winner}")
